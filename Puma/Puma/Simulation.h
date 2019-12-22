@@ -26,6 +26,5 @@ public:
 	void Init();
 	void Reset();
 	void Update(float dt);
-
 };
 

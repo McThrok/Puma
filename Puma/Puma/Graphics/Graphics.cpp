@@ -80,29 +80,24 @@ void Graphics::RenderMainPanel() {
 	}
 
 	ImGui::Separator();
-	if (ImGui::SliderFloat3("start position", &simulation->startPosition.x, 0, 5)) simulation->UpdateFrames();
-	if (ImGui::SliderFloat3("end position", &simulation->endPosition.x, 0, 5)) simulation->UpdateFrames();
-
-	ImGui::Separator();
-	if (ImGui::SliderFloat3("start rotation Euler", &simulation->startRotationEuler.x, -180, 180, "%.0f")) simulation->UpdateFramesEuler();
-	if (ImGui::SliderFloat3("end rotation Euler", &simulation->endRotationEuler.x, -180, 180, "%.0f")) simulation->UpdateFramesEuler();
-	if (ImGui::Button("Apply##Euler"))
-		simulation->UpdateRotationsFromEuler();
-
-	ImGui::Separator();
-	if (ImGui::SliderFloat4("start rotation Quat", &simulation->startRotationQuat.x, -5, 5, "%.2f")) simulation->UpdateFramesQuat();
-	if (ImGui::SliderFloat4("end rotation Quat", &simulation->endRotationQuat.x, -5, 5, "%.2f")) simulation->UpdateFramesQuat();
-	if (ImGui::Button("Apply##Quat"))
-		simulation->UpdateRotationsFromQuat();
+	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, 0, 5);
+	ImGui::SliderFloat3("end position", &simulation->robot.endState.Position.x, 0, 5);
 
 	ImGui::Separator();
 
-	if (ImGui::Checkbox("slerp", &simulation->slerp)) simulation->UpdateFramesQuat();
+	Vector3 startRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.startState.Rotation));
+	if (ImGui::SliderFloat3("start rotation Euler", &startRotation.x, -180, 180, "%.0f"))
+		simulation->robot.startState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(startRotation));
+
+	Vector3 endRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.endState.Rotation));
+	if (ImGui::SliderFloat3("end rotation Euler", &endRotation.x, -180, 180, "%.0f"))
+		simulation->robot.endState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(endRotation));
+
+	ImGui::Separator();
+
 	ImGui::Checkbox("loop", &simulation->loop);
-	ImGui::Checkbox("show Frames", &simulation->showFrames);
 	ImGui::SliderFloat("animation time", &simulation->animationTime, 1, 5);
 	ImGui::SliderFloat("animation progress", &simulation->time, 0, simulation->animationTime);
-	if (ImGui::SliderInt("frames", &simulation->frames, 0, 20)) simulation->UpdateFrames();
 
 	ImGui::End();
 }
@@ -119,27 +114,27 @@ void Graphics::RenderVisualisation()
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 
-	//top
-	this->deviceContext->RSSetViewports(1, &viewportTop);
-	RenderModel(simulation->GetModelMatrixEuler(0));
-	RenderModel(simulation->GetModelMatrixEuler(1));
+	////top
+	//this->deviceContext->RSSetViewports(1, &viewportTop);
+	//RenderModel(simulation->GetModelMatrixEuler(0));
+	//RenderModel(simulation->GetModelMatrixEuler(1));
 
-	RenderModel(simulation->GetModelMatrixEuler());
+	//RenderModel(simulation->GetModelMatrixEuler());
 
-	if (simulation->showFrames)
-		for (auto m : simulation->framesEuler)
-			RenderModel(m);
+	//if (simulation->showFrames)
+	//	for (auto m : simulation->framesEuler)
+	//		RenderModel(m);
 
-	//down
-	this->deviceContext->RSSetViewports(1, &viewportDown);
-	RenderModel(simulation->GetModelMatrixQuat(0));
-	RenderModel(simulation->GetModelMatrixQuat(1));
+	////down
+	//this->deviceContext->RSSetViewports(1, &viewportDown);
+	//RenderModel(simulation->GetModelMatrixQuat(0));
+	//RenderModel(simulation->GetModelMatrixQuat(1));
 
-	RenderModel(simulation->GetModelMatrixQuat());
+	//RenderModel(simulation->GetModelMatrixQuat());
 
-	if (simulation->showFrames)
-		for (auto m : simulation->framesQuat)
-			RenderModel(m);
+	//if (simulation->showFrames)
+	//	for (auto m : simulation->framesQuat)
+	//		RenderModel(m);
 
 }
 void Graphics::RenderModel(Matrix worldMatrix)

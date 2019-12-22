@@ -37,9 +37,6 @@ private:
 	void RenderModel(Matrix worldMatrix);
 	void RenderCube(Matrix worldMatrix, Vector4 color);
 
-	void updateFPSCounter();
-
-
 	int viewportHeight;
 	D3D11_VIEWPORT viewportTop;
 	D3D11_VIEWPORT viewportDown;
