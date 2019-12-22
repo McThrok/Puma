@@ -35,7 +35,6 @@ void Graphics::RenderFrame()
 	this->swapchain->Present(0, NULL);
 }
 
-
 void Graphics::InitGui(HWND hwnd) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -55,7 +54,6 @@ void Graphics::RenderGui() {
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
-
 void Graphics::RenderMainPanel() {
 	ImGui::SetNextWindowSize(ImVec2(500, 950), ImGuiCond_Once);
 	ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_Once);
@@ -147,7 +145,27 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 }
 void Graphics::RenderPuma()
 {
-	RenderCylinder(Matrix::Identity, { 1,1,1,1 });
+	float width = 0.2;
+	//InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, true);
+	InnerState state = simulation->robot.GetState(0, true);
+
+	Matrix tmp = Matrix::CreateTranslation(-0.5f, -0.5f, 0) * Matrix::CreateScale(width, width, 1);
+
+	Matrix m = Matrix::CreateRotationZ(XMConvertToRadians(state.angles[0]));
+	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[0]) * m, { 1,1,1,1 });
+
+	m = Matrix::CreateRotationY(XMConvertToRadians(state.angles[1])) * Matrix::CreateTranslation(0, 0, simulation->robot.l[0]) * m;
+	RenderCube(tmp * Matrix::CreateScale(1, 1, state.q) * m, { 1,1,1,1 });
+
+	m = Matrix::CreateRotationY(XMConvertToRadians(state.angles[2])) * Matrix::CreateTranslation(0, 0, state.q) * m;
+	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * m, { 1,1,1,1 });
+
+	m =  Matrix::CreateRotationZ(XMConvertToRadians(state.angles[3])) * Matrix::CreateRotationY(-XM_PIDIV2) * Matrix::CreateTranslation(0, 0, simulation->robot.l[1]) * m;
+	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * m, { 1,1,1,1 });
+
+	m =  Matrix::CreateRotationX(XMConvertToRadians(state.angles[4])) * Matrix::CreateRotationY(-XM_PIDIV2) * Matrix::CreateTranslation(0, 0, simulation->robot.l[2]) * m;
+	RenderCube(tmp * Matrix::CreateScale(1, 1, 1) * m, { 1,1,1,1 });
+
 }
 void Graphics::RenderCS(Matrix worldMatrix)
 {
@@ -323,7 +341,6 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 
 	return true;
 }
-
 bool Graphics::InitializeShaders()
 {
 	D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -345,7 +362,6 @@ bool Graphics::InitializeShaders()
 
 	return true;
 }
-
 bool Graphics::InitializeScene()
 {
 	InitCube();
@@ -448,7 +464,7 @@ void Graphics::InitCylinder()
 		b.Normalize();
 
 		int count = vertices.size();
-		vertices.push_back(VertexPN(0,0, 0.5f, 0, 0, 1));
+		vertices.push_back(VertexPN(0, 0, 0.5f, 0, 0, 1));
 		vertices.push_back(VertexPN(r * b.x, r * b.y, 0.5f, 0, 0, 1));
 		vertices.push_back(VertexPN(r * a.x, r * a.y, 0.5f, 0, 0, 1));
 		vertices.push_back(VertexPN(0, 0, -0.5f, 0, 0, -1));
@@ -456,7 +472,7 @@ void Graphics::InitCylinder()
 		vertices.push_back(VertexPN(r * b.x, r * b.y, -0.5f, 0, 0, -1));
 
 		indices.push_back(count); indices.push_back(count + 1); indices.push_back(count + 2);
-		indices.push_back(count+3); indices.push_back(count + 4); indices.push_back(count + 5);
+		indices.push_back(count + 3); indices.push_back(count + 4); indices.push_back(count + 5);
 	}
 
 	this->vbCylinder.Initialize(this->device.Get(), vertices.data(), vertices.size());
