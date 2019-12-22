@@ -29,13 +29,17 @@ private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
 	bool InitializeScene();
+	void InitCube();
+	void InitCylinder();
 
 	void InitGui(HWND hwnd);
 	void RenderGui();
 	void RenderMainPanel();
 	void RenderVisualisation();
-	void RenderModel(Matrix worldMatrix);
+	void RenderCS(Matrix worldMatrix);
 	void RenderCube(Matrix worldMatrix, Vector4 color);
+	void RenderCylinder(Matrix worldMatrix, Vector4 color);
+	void RenderPuma();
 
 	int viewportHeight;
 	D3D11_VIEWPORT viewportTop;
@@ -53,8 +57,8 @@ private:
 	ConstantBuffer<ColoredObjectBuffer> cbColoredObject;
 	ConstantBuffer<LightBuffer> cbLight;
 
-	VertexBuffer<VertexPN> vbCube;
-	IndexBuffer ibCube;
+	VertexBuffer<VertexPN> vbCube, vbCylinder;
+	IndexBuffer ibCube, ibCylinder;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;

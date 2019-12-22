@@ -114,30 +114,42 @@ void Graphics::RenderVisualisation()
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 
-	////top
-	//this->deviceContext->RSSetViewports(1, &viewportTop);
-	//RenderModel(simulation->GetModelMatrixEuler(0));
-	//RenderModel(simulation->GetModelMatrixEuler(1));
+	//top
+	this->deviceContext->RSSetViewports(1, &viewportTop);
+	RenderCS(simulation->robot.startState.GetMatrix());
+	RenderCS(simulation->robot.startState.GetMatrix());
 
-	//RenderModel(simulation->GetModelMatrixEuler());
 
-	//if (simulation->showFrames)
-	//	for (auto m : simulation->framesEuler)
-	//		RenderModel(m);
+	RenderPuma();
 
-	////down
-	//this->deviceContext->RSSetViewports(1, &viewportDown);
-	//RenderModel(simulation->GetModelMatrixQuat(0));
-	//RenderModel(simulation->GetModelMatrixQuat(1));
 
-	//RenderModel(simulation->GetModelMatrixQuat());
+	//down
+	this->deviceContext->RSSetViewports(1, &viewportDown);
+	RenderCS(simulation->robot.startState.GetMatrix());
+	RenderCS(simulation->robot.startState.GetMatrix());
 
-	//if (simulation->showFrames)
-	//	for (auto m : simulation->framesQuat)
-	//		RenderModel(m);
+	RenderPuma();
 
 }
-void Graphics::RenderModel(Matrix worldMatrix)
+void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
+{
+	UINT offset = 0;
+
+	cbColoredObject.data.worldMatrix = worldMatrix;
+	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+	cbColoredObject.data.color = color;
+
+	cbColoredObject.ApplyChanges();
+	this->deviceContext->IASetVertexBuffers(0, 1, vbCylinder.GetAddressOf(), vbCylinder.StridePtr(), &offset);
+	this->deviceContext->IASetIndexBuffer(ibCylinder.Get(), DXGI_FORMAT_R32_UINT, 0);
+	this->deviceContext->DrawIndexed(ibCylinder.BufferSize(), 0, 0);
+
+}
+void Graphics::RenderPuma()
+{
+	RenderCylinder(Matrix::Identity, { 1,1,1,1 });
+}
+void Graphics::RenderCS(Matrix worldMatrix)
 {
 	float width = 0.03f;
 	RenderCube(Matrix::CreateScale(width, width, width) * worldMatrix, { 0.3f, 0.3f, 0.3f, 1 });
@@ -336,6 +348,21 @@ bool Graphics::InitializeShaders()
 
 bool Graphics::InitializeScene()
 {
+	InitCube();
+	InitCylinder();
+
+	//Initialize Constant Buffer(s)
+	this->cbColoredObject.Initialize(this->device.Get(), this->deviceContext.Get());
+	this->cbLight.Initialize(this->device.Get(), this->deviceContext.Get());
+
+
+	camera.SetPosition(0, -5.0f, 0);
+	camera.SetProjectionValues(60.0f, static_cast<float>(windowWidth) / static_cast<float>(viewportHeight), 0.1f, 1000.0f);
+
+	return true;
+}
+void Graphics::InitCube()
+{
 	VertexPN v[] = {
 		VertexPN(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f),
 		VertexPN(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f),
@@ -381,13 +408,57 @@ bool Graphics::InitializeScene()
 	this->vbCube.Initialize(this->device.Get(), v, ARRAYSIZE(v));
 	this->ibCube.Initialize(this->device.Get(), indices, ARRAYSIZE(indices));
 
-	//Initialize Constant Buffer(s)
-	this->cbColoredObject.Initialize(this->device.Get(), this->deviceContext.Get());
-	this->cbLight.Initialize(this->device.Get(), this->deviceContext.Get());
+}
+void Graphics::InitCylinder()
+{
+	float r = 0.5f;
+	int horizontalLvls = 25;
 
+	vector<VertexPN> vertices;
+	vector<int> indices;
 
-	camera.SetPosition(0, -5.0f, 0);
-	camera.SetProjectionValues(60.0f, static_cast<float>(windowWidth) / static_cast<float>(viewportHeight), 0.1f, 1000.0f);
+	for (int i = 0; i < horizontalLvls; i++)
+	{
+		float angle = XM_2PI * i / horizontalLvls;
+		float angle2 = XM_2PI * (i + 1) / horizontalLvls;
+		Vector3 a = Vector3(cos(angle), sin(angle), 0);
+		Vector3 b = Vector3(cos(angle2), sin(angle2), 0);
 
-	return true;
+		a.Normalize();
+		b.Normalize();
+
+		int count = vertices.size();
+		vertices.push_back(VertexPN(r * a.x, r * a.y, -0.5f, a.x, a.y, 0));
+		vertices.push_back(VertexPN(r * a.x, r * a.y, 0.5f, a.x, a.y, 0));
+		vertices.push_back(VertexPN(r * b.x, r * b.y, 0.5f, b.x, b.y, 0));
+		vertices.push_back(VertexPN(r * b.x, r * b.y, -0.5f, b.x, b.y, 0));
+
+		indices.push_back(count); indices.push_back(count + 1); indices.push_back(count + 2);
+		indices.push_back(count); indices.push_back(count + 2); indices.push_back(count + 3);
+	}
+
+	for (int i = 0; i < horizontalLvls; i++)
+	{
+		float angle = XM_2PI * i / horizontalLvls;
+		float angle2 = XM_2PI * (i + 1) / horizontalLvls;
+		Vector3 a = Vector3(cos(angle), sin(angle), 0);
+		Vector3 b = Vector3(cos(angle2), sin(angle2), 0);
+
+		a.Normalize();
+		b.Normalize();
+
+		int count = vertices.size();
+		vertices.push_back(VertexPN(0,0, 0.5f, 0, 0, 1));
+		vertices.push_back(VertexPN(r * b.x, r * b.y, 0.5f, 0, 0, 1));
+		vertices.push_back(VertexPN(r * a.x, r * a.y, 0.5f, 0, 0, 1));
+		vertices.push_back(VertexPN(0, 0, -0.5f, 0, 0, -1));
+		vertices.push_back(VertexPN(r * a.x, r * a.y, -0.5f, 0, 0, -1));
+		vertices.push_back(VertexPN(r * b.x, r * b.y, -0.5f, 0, 0, -1));
+
+		indices.push_back(count); indices.push_back(count + 1); indices.push_back(count + 2);
+		indices.push_back(count+3); indices.push_back(count + 4); indices.push_back(count + 5);
+	}
+
+	this->vbCylinder.Initialize(this->device.Get(), vertices.data(), vertices.size());
+	this->ibCylinder.Initialize(this->device.Get(), indices.data(), indices.size());
 }
