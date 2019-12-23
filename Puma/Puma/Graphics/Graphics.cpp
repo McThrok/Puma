@@ -145,22 +145,27 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 }
 void Graphics::RenderPuma()
 {
-	float width = 0.2;
-	float csScale = 0.6;
 	//InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, true);
 	InnerState state = simulation->robot.GetState(0, true);
 	vector<Matrix> css = simulation->robot.GetMatrixes(state);
 
+	float width = 0.2;
 	Matrix cubeMtx = Matrix::CreateTranslation(-0.5f, -0.5f, 0) * Matrix::CreateScale(width, width, 1);
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[0]) * css[0], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, state.q) * Matrix::CreateRotationY(XM_PIDIV2) * css[1], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * Matrix::CreateTranslation(0, 0, -simulation->robot.l[1]) * css[2], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * Matrix::CreateRotationY(XM_PIDIV2) * css[3], { 1,1,1,1 });
 
+	Matrix cylinderMtx = Matrix::CreateScale(0.3);
+	RenderCylinder(cylinderMtx * css[0], { 1,1,1,1 });
+	RenderCylinder(cylinderMtx * Matrix::CreateRotationX(XM_PIDIV2) * css[1], { 1,1,1,1 });
+	RenderCylinder(cylinderMtx * Matrix::CreateRotationX(XM_PIDIV2) * css[2], { 1,1,1,1 });
+	RenderCylinder(cylinderMtx * css[3], { 1,1,1,1 });
+	RenderCylinder(Matrix::CreateTranslation(0, 0, -0.5f) * cylinderMtx * Matrix::CreateRotationY(XM_PIDIV2) *  css[4], { 1,1,1,1 });
 
 	if (simulation->robot.showInnerCS)
 	{
-		Matrix scale = Matrix::CreateScale(csScale);
+		Matrix scale = Matrix::CreateScale(0.6f);
 		RenderCS(scale * css[0]);
 		RenderCS(scale * css[1]);
 		RenderCS(scale * css[2]);
