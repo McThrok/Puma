@@ -73,9 +73,9 @@ void Graphics::RenderMainPanel() {
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Reset")) {
+	if (ImGui::Button("Reset")) 
 		simulation->Reset();
-	}
+		
 
 	ImGui::Separator();
 	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, 0, 5);
@@ -94,6 +94,7 @@ void Graphics::RenderMainPanel() {
 	ImGui::Separator();
 
 	ImGui::Checkbox("loop", &simulation->loop);
+	ImGui::Checkbox("inner CS", &simulation->robot.showInnerCS);
 	ImGui::SliderFloat("animation time", &simulation->animationTime, 1, 5);
 	ImGui::SliderFloat("animation progress", &simulation->time, 0, simulation->animationTime);
 

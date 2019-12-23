@@ -2,6 +2,8 @@
 
 void Robot::Init()
 {
+	showInnerCS = true;
+
 	l.push_back(3);
 	l.push_back(2);
 	l.push_back(1);
@@ -19,7 +21,6 @@ void Robot::Init()
 	endInner.angles.push_back(30);
 	endInner.angles.push_back(-30);
 	endInner.angles.push_back(130);
-
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
