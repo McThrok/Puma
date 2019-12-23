@@ -21,6 +21,16 @@ void Robot::Init()
 	endInner.angles.push_back(30);
 	endInner.angles.push_back(-30);
 	endInner.angles.push_back(130);
+
+	startState.Position = Vector3(5.23231213, 0.23121, 5.8123231213);
+	startState.Rotation = Quaternion::Identity;
+	startInner = InverseKinematics(startState);
+
+	endState.Position = Vector3(0.3231,2.23213231,6.2312);
+	//endState.Position = Vector3(0, 0, 5);
+	endState.Rotation = Quaternion::Identity;
+	endInner = InverseKinematics(endState);
+
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
@@ -110,7 +120,31 @@ float Robot::NormalizeAngle(float angle)
 }
 InnerState Robot::InverseKinematics(State state)
 {
-	return InnerState();
+	Vector3 p = state.Position;
+	Matrix m = state.GetMatrix();
+	Vector3 x = XMVector3TransformNormal(Vector3(1, 0, 0), m);
+	Vector3 y = XMVector3TransformNormal(Vector3(0, 1, 0), m);
+	Vector3 z = XMVector3TransformNormal(Vector3(0, 0, 1), m);
+
+	float l1 = l[0];
+	float l3 = l[1];
+	float l4 = l[2];
+
+	float a1 = atan2f(p.y - l4 * x.y, p.x - l4 * x.x);
+	float a4 = asinf(cosf(a1) * x.y - sinf(a1) * x.x);
+	float a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
+	float a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
+	float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
+	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
+	float a3 = a23 - a2;
+
+	InnerState inner;
+	inner.q = q;
+	inner.angles = {  a1,a2,a3,a4,a5 };
+	for (float& a : inner.angles)
+		a = XMConvertToDegrees(a);
+
+	return inner;
 }
 vector<Matrix> Robot::GetMatrixes(InnerState inner)
 {

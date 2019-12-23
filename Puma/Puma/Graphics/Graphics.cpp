@@ -81,6 +81,13 @@ void Graphics::RenderMainPanel() {
 	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, 0, 5);
 	ImGui::SliderFloat3("end position", &simulation->robot.endState.Position.x, 0, 5);
 
+	ImGui::SliderFloat("start a1", &simulation->robot.startInner.angles[0], -180, 180, "%.0f");
+	ImGui::SliderFloat("start a2", &simulation->robot.startInner.angles[1], -180, 180, "%.0f");
+	ImGui::SliderFloat("start a3", &simulation->robot.startInner.angles[2], -180, 180, "%.0f");
+	ImGui::SliderFloat("start a4", &simulation->robot.startInner.angles[3], -180, 180, "%.0f");
+	ImGui::SliderFloat("start a5", &simulation->robot.startInner.angles[4], -180, 180, "%.0f");
+	ImGui::SliderFloat("start q", &simulation->robot.startInner.q,0,5);
+
 	ImGui::Separator();
 
 	static Vector3 startRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.startState.Rotation));
@@ -93,8 +100,8 @@ void Graphics::RenderMainPanel() {
 
 	ImGui::Separator();
 
-	ImGui::Checkbox("loop", &simulation->loop);
 	ImGui::Checkbox("inner CS", &simulation->robot.showInnerCS);
+	ImGui::Checkbox("loop", &simulation->loop);
 	ImGui::SliderFloat("animation time", &simulation->animationTime, 1, 5);
 	ImGui::SliderFloat("animation progress", &simulation->time, 0, simulation->animationTime);
 
@@ -126,8 +133,7 @@ void Graphics::RenderVisualisation()
 	RenderCS(simulation->robot.startState.GetMatrix());
 	RenderCS(simulation->robot.endState.GetMatrix());
 
-	//RenderPuma(false);
-	RenderPuma(true);
+	RenderPuma(false);
 
 }
 void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
