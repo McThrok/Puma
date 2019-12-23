@@ -34,6 +34,7 @@ public:
 class Robot
 {
 public:
+	bool showInnerCS;
 	vector<float> l;
 
 	State startState;
@@ -47,6 +48,7 @@ public:
 	State GetInterpolatedState(float animationProgress);
 	InnerState GetInterpolatedInnerState(float animationProgress);
 	InnerState InverseKinematics(State state);
+	vector<Matrix> GetMatrixes(InnerState state);
 
 	Quaternion EtoQ(Vector3 v);
 	Vector3 QtoE(Quaternion q);

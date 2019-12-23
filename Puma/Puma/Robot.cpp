@@ -8,10 +8,10 @@ void Robot::Init()
 
 	startInner.q = 3;
 	startInner.angles.push_back(30);
-	startInner.angles.push_back(80);
-	startInner.angles.push_back(120);
+	startInner.angles.push_back(-10);
+	startInner.angles.push_back(-10);
 	startInner.angles.push_back(30);
-	startInner.angles.push_back(30);
+	startInner.angles.push_back(60);
 
 	endInner.q = 3;
 	endInner.angles.push_back(30);
@@ -109,5 +109,25 @@ float Robot::NormalizeAngle(float angle)
 InnerState Robot::InverseKinematics(State state)
 {
 	return InnerState();
+}
+vector<Matrix> Robot::GetMatrixes(InnerState inner)
+{
+	vector<Matrix> result;
+	Matrix m = Matrix::CreateRotationZ(XMConvertToRadians(inner.angles[0]));
+	result.push_back(m);
+
+	m = Matrix::CreateRotationY(XMConvertToRadians(inner.angles[1])) * Matrix::CreateTranslation(0, 0, l[0]) * m;
+	result.push_back(m);
+
+	m = Matrix::CreateRotationY(XMConvertToRadians(inner.angles[2])) * Matrix::CreateTranslation(inner.q, 0, 0) * m;
+	result.push_back(m);
+
+	m = Matrix::CreateRotationZ(XMConvertToRadians(inner.angles[3])) * Matrix::CreateTranslation(0, 0, -l[1]) * m;
+	result.push_back(m);
+
+	m = Matrix::CreateRotationX(XMConvertToRadians(inner.angles[4])) * Matrix::CreateTranslation(l[2], 0, 0) * m;
+	result.push_back(m);
+
+	return result;
 }
 

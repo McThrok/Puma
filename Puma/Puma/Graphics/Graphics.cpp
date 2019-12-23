@@ -146,26 +146,27 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 void Graphics::RenderPuma()
 {
 	float width = 0.2;
+	float csScale = 0.6;
 	//InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, true);
 	InnerState state = simulation->robot.GetState(0, true);
+	vector<Matrix> css = simulation->robot.GetMatrixes(state);
 
-	Matrix tmp = Matrix::CreateTranslation(-0.5f, -0.5f, 0) * Matrix::CreateScale(width, width, 1);
+	Matrix cubeMtx = Matrix::CreateTranslation(-0.5f, -0.5f, 0) * Matrix::CreateScale(width, width, 1);
+	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[0]) * css[0], { 1,1,1,1 });
+	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, state.q) * Matrix::CreateRotationY(XM_PIDIV2) * css[1], { 1,1,1,1 });
+	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * Matrix::CreateTranslation(0, 0, -simulation->robot.l[1]) * css[2], { 1,1,1,1 });
+	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * Matrix::CreateRotationY(XM_PIDIV2) * css[3], { 1,1,1,1 });
 
-	Matrix m = Matrix::CreateRotationZ(XMConvertToRadians(state.angles[0]));
-	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[0]) * m, { 1,1,1,1 });
 
-	m = Matrix::CreateRotationY(XMConvertToRadians(state.angles[1])) * Matrix::CreateTranslation(0, 0, simulation->robot.l[0]) * m;
-	RenderCube(tmp * Matrix::CreateScale(1, 1, state.q) * m, { 1,1,1,1 });
-
-	m = Matrix::CreateRotationY(XMConvertToRadians(state.angles[2])) * Matrix::CreateTranslation(0, 0, state.q) * m;
-	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * m, { 1,1,1,1 });
-
-	m =  Matrix::CreateRotationZ(XMConvertToRadians(state.angles[3])) * Matrix::CreateRotationY(-XM_PIDIV2) * Matrix::CreateTranslation(0, 0, simulation->robot.l[1]) * m;
-	RenderCube(tmp * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * m, { 1,1,1,1 });
-
-	m =  Matrix::CreateRotationX(XMConvertToRadians(state.angles[4])) * Matrix::CreateRotationY(-XM_PIDIV2) * Matrix::CreateTranslation(0, 0, simulation->robot.l[2]) * m;
-	RenderCube(tmp * Matrix::CreateScale(1, 1, 1) * m, { 1,1,1,1 });
-
+	if (simulation->robot.showInnerCS)
+	{
+		Matrix scale = Matrix::CreateScale(csScale);
+		RenderCS(scale * css[0]);
+		RenderCS(scale * css[1]);
+		RenderCS(scale * css[2]);
+		RenderCS(scale * css[3]);
+		RenderCS(scale * css[4]);
+	}
 }
 void Graphics::RenderCS(Matrix worldMatrix)
 {
