@@ -13,12 +13,13 @@ void Robot::Init()
 	startInner.angles.push_back(30);
 	startInner.angles.push_back(60);
 
-	endInner.q = 3;
+	endInner.q = 5;
+	endInner.angles.push_back(70);
+	endInner.angles.push_back(10);
 	endInner.angles.push_back(30);
-	endInner.angles.push_back(30);
-	endInner.angles.push_back(30);
-	endInner.angles.push_back(30);
-	endInner.angles.push_back(30);
+	endInner.angles.push_back(-30);
+	endInner.angles.push_back(130);
+
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {

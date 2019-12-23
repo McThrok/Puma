@@ -83,12 +83,12 @@ void Graphics::RenderMainPanel() {
 
 	ImGui::Separator();
 
-	Vector3 startRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.startState.Rotation));
-	if (ImGui::SliderFloat3("start rotation Euler", &startRotation.x, -180, 180, "%.0f"))
+	static Vector3 startRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.startState.Rotation));
+	if(ImGui::SliderFloat3("start rotation Euler", &startRotation.x, -180, 180, "%.0f"))
 		simulation->robot.startState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(startRotation));
 
-	Vector3 endRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.endState.Rotation));
-	if (ImGui::SliderFloat3("end rotation Euler", &endRotation.x, -180, 180, "%.0f"))
+	static Vector3 endRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.endState.Rotation));
+	if(ImGui::SliderFloat3("end rotation Euler", &endRotation.x, -180, 180, "%.0f"))
 		simulation->robot.endState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(endRotation));
 
 	ImGui::Separator();
@@ -115,18 +115,18 @@ void Graphics::RenderVisualisation()
 	//top
 	this->deviceContext->RSSetViewports(1, &viewportTop);
 	RenderCS(simulation->robot.startState.GetMatrix());
-	RenderCS(simulation->robot.startState.GetMatrix());
+	RenderCS(simulation->robot.endState.GetMatrix());
 
-
-	RenderPuma();
+	RenderPuma(true);
 
 
 	//down
 	this->deviceContext->RSSetViewports(1, &viewportDown);
 	RenderCS(simulation->robot.startState.GetMatrix());
-	RenderCS(simulation->robot.startState.GetMatrix());
+	RenderCS(simulation->robot.endState.GetMatrix());
 
-	RenderPuma();
+	//RenderPuma(false);
+	RenderPuma(true);
 
 }
 void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
@@ -143,10 +143,10 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 	this->deviceContext->DrawIndexed(ibCylinder.BufferSize(), 0, 0);
 
 }
-void Graphics::RenderPuma()
+void Graphics::RenderPuma(bool angleInterpolation)
 {
-	//InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, true);
-	InnerState state = simulation->robot.GetState(0, true);
+	InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, angleInterpolation);
+	//InnerState state = simulation->robot.GetState(0, angleInterpolation);
 	vector<Matrix> css = simulation->robot.GetMatrixes(state);
 
 	float width = 0.2;
@@ -161,7 +161,7 @@ void Graphics::RenderPuma()
 	RenderCylinder(cylinderMtx * Matrix::CreateRotationX(XM_PIDIV2) * css[1], { 1,1,1,1 });
 	RenderCylinder(cylinderMtx * Matrix::CreateRotationX(XM_PIDIV2) * css[2], { 1,1,1,1 });
 	RenderCylinder(cylinderMtx * css[3], { 1,1,1,1 });
-	RenderCylinder(Matrix::CreateTranslation(0, 0, -0.5f) * cylinderMtx * Matrix::CreateRotationY(XM_PIDIV2) *  css[4], { 1,1,1,1 });
+	RenderCylinder(Matrix::CreateTranslation(0, 0, -0.5f) * cylinderMtx * Matrix::CreateRotationY(XM_PIDIV2) * css[4], { 1,1,1,1 });
 
 	if (simulation->robot.showInnerCS)
 	{

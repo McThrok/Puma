@@ -39,7 +39,7 @@ private:
 	void RenderCS(Matrix worldMatrix);
 	void RenderCube(Matrix worldMatrix, Vector4 color);
 	void RenderCylinder(Matrix worldMatrix, Vector4 color);
-	void RenderPuma();
+	void RenderPuma(bool angleInterpolation);
 
 	int viewportHeight;
 	D3D11_VIEWPORT viewportTop;
