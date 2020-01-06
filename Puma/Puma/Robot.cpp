@@ -8,11 +8,13 @@ void Robot::Init()
 	l.push_back(2);
 	l.push_back(1);
 
-	startState.Position = Vector3(5.23231213, 0.23121, 5.8123231213);
+	startState.Position = Vector3(5,0,5);
 	startState.Rotation = Quaternion::Identity;
+	startState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
 
-	endState.Position = Vector3(0.3231,2.23213231,6.2312);
+	endState.Position = Vector3(-5,0,5);
 	endState.Rotation = Quaternion::Identity;
+	endState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
@@ -39,8 +41,8 @@ InnerState Robot::GetInterpolatedInnerState(float animationProgress)
 	{
 		float s = start.angles[i];
 		float e = end.angles[i];
-		//if (e - s > XM_PI) e -= XM_2PI;
-		//if (s - e > XM_PI) e += XM_2PI;
+		if (e - s > 180) e -= 360;
+		if (s - e > 180) e += 360;
 
 		inner.angles.push_back((e - s) * animationProgress + s);
 	}
@@ -95,13 +97,6 @@ Vector3 Robot::ToDeg(Vector3 v)
 {
 	return v * 180 / XM_PI;
 }
-float Robot::NormalizeAngle(float angle)
-{
-	while (angle < 0) angle += 360;
-	while (angle >= 360) angle -= 360;
-
-	return angle;
-}
 InnerState Robot::InverseKinematics(State state)
 {
 	Vector3 p = state.Position;
@@ -124,7 +119,7 @@ InnerState Robot::InverseKinematics(State state)
 
 	InnerState inner;
 	inner.q = q;
-	inner.angles = {  a1,a2,a3,a4,a5 };
+	inner.angles = { a1,a2,a3,a4,a5 };
 	for (float& a : inner.angles)
 		a = XMConvertToDegrees(a);
 
@@ -151,3 +146,27 @@ vector<Matrix> Robot::GetMatrices(InnerState inner)
 	return result;
 }
 
+float Robot::NormalizeDeg(float angle)
+{
+	while (angle < 0) angle += 360;
+	while (angle >= 360) angle -= 360;
+
+	return angle;
+}
+float Robot::NormalizeRad(float angle)
+{
+	while (angle < 0) angle += XM_2PI;
+	while (angle >= XM_2PI) angle -= XM_2PI;
+
+	return angle;
+}
+float Robot::DegDiff(float a, float b)
+{
+	float deg = abs(NormalizeDeg(b) - NormalizeDeg(a));
+	return deg > 180 ? deg - 180 : deg;
+}
+float Robot::RadDiff(float a, float b)
+{
+	float rad = abs(NormalizeDeg(b) - NormalizeDeg(a));
+	return rad > XM_PI ? rad - XM_PI : rad;
+}

@@ -39,12 +39,9 @@ public:
 
 	State startState;
 	State endState;
-	//InnerState startInner;
-	//InnerState endInner;
 
 	void Init();
 	InnerState GetState(float animationProgress, bool angleInterpolation);
-	float NormalizeAngle(float angle);
 	State GetInterpolatedState(float animationProgress);
 	InnerState GetInterpolatedInnerState(float animationProgress);
 	InnerState InverseKinematics(State state);
@@ -54,5 +51,10 @@ public:
 	Vector3 QtoE(Quaternion q);
 	Vector3 ToRad(Vector3 v);
 	Vector3 ToDeg(Vector3 v);
+
+	float NormalizeDeg(float angle);
+	float NormalizeRad(float angle);
+	float DegDiff(float a, float b);
+	float RadDiff(float a, float b);
 };
 

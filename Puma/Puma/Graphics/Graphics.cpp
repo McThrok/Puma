@@ -78,8 +78,8 @@ void Graphics::RenderMainPanel() {
 
 
 	ImGui::Separator();
-	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, 0, 5);
-	ImGui::SliderFloat3("end position", &simulation->robot.endState.Position.x, 0, 5);
+	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, -5, 5);
+	ImGui::SliderFloat3("end position", &simulation->robot.endState.Position.x, -5, 5);
 
 	ImGui::Separator();
 
