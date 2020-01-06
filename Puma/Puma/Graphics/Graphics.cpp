@@ -73,37 +73,45 @@ void Graphics::RenderMainPanel() {
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Reset")) 
+	if (ImGui::Button("Reset"))
 		simulation->Reset();
-		
+
 
 	ImGui::Separator();
 	ImGui::SliderFloat3("start position", &simulation->robot.startState.Position.x, 0, 5);
 	ImGui::SliderFloat3("end position", &simulation->robot.endState.Position.x, 0, 5);
 
-	ImGui::SliderFloat("start a1", &simulation->robot.startInner.angles[0], -180, 180, "%.0f");
-	ImGui::SliderFloat("start a2", &simulation->robot.startInner.angles[1], -180, 180, "%.0f");
-	ImGui::SliderFloat("start a3", &simulation->robot.startInner.angles[2], -180, 180, "%.0f");
-	ImGui::SliderFloat("start a4", &simulation->robot.startInner.angles[3], -180, 180, "%.0f");
-	ImGui::SliderFloat("start a5", &simulation->robot.startInner.angles[4], -180, 180, "%.0f");
-	ImGui::SliderFloat("start q", &simulation->robot.startInner.q,0,5);
-
 	ImGui::Separator();
 
 	static Vector3 startRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.startState.Rotation));
-	if(ImGui::SliderFloat3("start rotation Euler", &startRotation.x, -180, 180, "%.0f"))
+	if (ImGui::SliderFloat3("start rotation Euler", &startRotation.x, -180, 180, "%.0f"))
 		simulation->robot.startState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(startRotation));
 
 	static Vector3 endRotation = simulation->robot.ToDeg(simulation->robot.QtoE(simulation->robot.endState.Rotation));
-	if(ImGui::SliderFloat3("end rotation Euler", &endRotation.x, -180, 180, "%.0f"))
+	if (ImGui::SliderFloat3("end rotation Euler", &endRotation.x, -180, 180, "%.0f"))
 		simulation->robot.endState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(endRotation));
 
 	ImGui::Separator();
-
 	ImGui::Checkbox("inner CS", &simulation->robot.showInnerCS);
 	ImGui::Checkbox("loop", &simulation->loop);
 	ImGui::SliderFloat("animation time", &simulation->animationTime, 1, 5);
 	ImGui::SliderFloat("animation progress", &simulation->time, 0, simulation->animationTime);
+
+	ImGui::Separator();
+	InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, false);
+	ImGui::Text(("angle 1: " + std::to_string(state.angles[0])).c_str());
+	ImGui::Text(("q: " + std::to_string(state.q)).c_str());
+	ImGui::Text(("angle 2: " + std::to_string(state.angles[1])).c_str());
+	ImGui::Text(("angle 3: " + std::to_string(state.angles[2])).c_str());
+	ImGui::Text(("angle 4: " + std::to_string(state.angles[3])).c_str());
+
+	ImGui::Separator();
+	state = simulation->robot.GetState(simulation->time / simulation->animationTime, true);
+	ImGui::Text(("angle 1: " + std::to_string(state.angles[0])).c_str());
+	ImGui::Text(("q: " + std::to_string(state.q)).c_str());
+	ImGui::Text(("angle 2: " + std::to_string(state.angles[1])).c_str());
+	ImGui::Text(("angle 3: " + std::to_string(state.angles[2])).c_str());
+	ImGui::Text(("angle 4: " + std::to_string(state.angles[3])).c_str());
 
 	ImGui::End();
 }
@@ -126,7 +134,6 @@ void Graphics::RenderVisualisation()
 	RenderCS(simulation->robot.endState.GetMatrix());
 
 	RenderPuma(true);
-
 
 	//down
 	this->deviceContext->RSSetViewports(1, &viewportDown);
@@ -153,13 +160,15 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 void Graphics::RenderPuma(bool angleInterpolation)
 {
 	InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, angleInterpolation);
-	//InnerState state = simulation->robot.GetState(0, angleInterpolation);
-	vector<Matrix> css = simulation->robot.GetMatrixes(state);
+	vector<Matrix> css = simulation->robot.GetMatrices(state);
 
 	float width = 0.2;
 	Matrix cubeMtx = Matrix::CreateTranslation(-0.5f, -0.5f, 0) * Matrix::CreateScale(width, width, 1);
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[0]) * css[0], { 1,1,1,1 });
-	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, state.q) * Matrix::CreateRotationY(XM_PIDIV2) * css[1], { 1,1,1,1 });
+	if (state.q > 0)
+		RenderCube(cubeMtx * Matrix::CreateScale(1, 1, state.q) * Matrix::CreateRotationY(XM_PIDIV2) * css[1], { 1,1,1,1 });
+	else
+		RenderCube(cubeMtx  * Matrix::CreateScale(1, 1, -state.q) * Matrix::CreateRotationY(3*XM_PIDIV2)  * css[1], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * Matrix::CreateTranslation(0, 0, -simulation->robot.l[1]) * css[2], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * Matrix::CreateRotationY(XM_PIDIV2) * css[3], { 1,1,1,1 });
 

@@ -8,29 +8,11 @@ void Robot::Init()
 	l.push_back(2);
 	l.push_back(1);
 
-	startInner.q = 3;
-	startInner.angles.push_back(30);
-	startInner.angles.push_back(-10);
-	startInner.angles.push_back(-10);
-	startInner.angles.push_back(30);
-	startInner.angles.push_back(60);
-
-	endInner.q = 5;
-	endInner.angles.push_back(70);
-	endInner.angles.push_back(10);
-	endInner.angles.push_back(30);
-	endInner.angles.push_back(-30);
-	endInner.angles.push_back(130);
-
 	startState.Position = Vector3(5.23231213, 0.23121, 5.8123231213);
 	startState.Rotation = Quaternion::Identity;
-	startInner = InverseKinematics(startState);
 
 	endState.Position = Vector3(0.3231,2.23213231,6.2312);
-	//endState.Position = Vector3(0, 0, 5);
 	endState.Rotation = Quaternion::Identity;
-	endInner = InverseKinematics(endState);
-
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
@@ -51,17 +33,19 @@ InnerState Robot::GetInterpolatedInnerState(float animationProgress)
 {
 	InnerState inner;
 
-	for (int i = 0; i < startInner.angles.size(); i++)
+	InnerState start = InverseKinematics(startState);
+	InnerState end = InverseKinematics(endState);
+	for (int i = 0; i < start.angles.size(); i++)
 	{
-		float s = startInner.angles[i];
-		float e = endInner.angles[i];
-		if (e - s > XM_PI) e -= XM_2PI;
-		if (s - e > XM_PI) e += XM_2PI;
+		float s = start.angles[i];
+		float e = end.angles[i];
+		//if (e - s > XM_PI) e -= XM_2PI;
+		//if (s - e > XM_PI) e += XM_2PI;
 
 		inner.angles.push_back((e - s) * animationProgress + s);
 	}
 
-	inner.q = (endInner.q - startInner.q) * animationProgress + startInner.q;
+	inner.q = (end.q - start.q) * animationProgress + start.q;
 
 	return inner;
 }
@@ -146,7 +130,7 @@ InnerState Robot::InverseKinematics(State state)
 
 	return inner;
 }
-vector<Matrix> Robot::GetMatrixes(InnerState inner)
+vector<Matrix> Robot::GetMatrices(InnerState inner)
 {
 	vector<Matrix> result;
 	Matrix m = Matrix::CreateRotationZ(XMConvertToRadians(inner.angles[0]));

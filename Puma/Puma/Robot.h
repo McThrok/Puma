@@ -39,8 +39,8 @@ public:
 
 	State startState;
 	State endState;
-	InnerState startInner;
-	InnerState endInner;
+	//InnerState startInner;
+	//InnerState endInner;
 
 	void Init();
 	InnerState GetState(float animationProgress, bool angleInterpolation);
@@ -48,7 +48,7 @@ public:
 	State GetInterpolatedState(float animationProgress);
 	InnerState GetInterpolatedInnerState(float animationProgress);
 	InnerState InverseKinematics(State state);
-	vector<Matrix> GetMatrixes(InnerState state);
+	vector<Matrix> GetMatrices(InnerState state);
 
 	Quaternion EtoQ(Vector3 v);
 	Vector3 QtoE(Quaternion q);
