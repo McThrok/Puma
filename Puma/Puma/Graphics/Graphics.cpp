@@ -128,12 +128,12 @@ void Graphics::RenderVisualisation()
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 
-	//top
-	this->deviceContext->RSSetViewports(1, &viewportTop);
-	RenderCS(simulation->robot.startState.GetMatrix());
-	RenderCS(simulation->robot.endState.GetMatrix());
+	////top
+	//this->deviceContext->RSSetViewports(1, &viewportTop);
+	//RenderCS(simulation->robot.startState.GetMatrix());
+	//RenderCS(simulation->robot.endState.GetMatrix());
 
-	RenderPuma(true);
+	//RenderPuma(true);
 
 	//down
 	this->deviceContext->RSSetViewports(1, &viewportDown);
@@ -160,6 +160,7 @@ void Graphics::RenderCylinder(Matrix worldMatrix, Vector4 color)
 void Graphics::RenderPuma(bool angleInterpolation)
 {
 	InnerState state = simulation->robot.GetState(simulation->time / simulation->animationTime, angleInterpolation);
+	simulation->robot.prev = state;
 	vector<Matrix> css = simulation->robot.GetMatrices(state);
 
 	float width = 0.2;

@@ -8,13 +8,13 @@ void Robot::Init()
 	l.push_back(2);
 	l.push_back(1);
 
-	startState.Position = Vector3(5,0,5);
+	startState.Position = Vector3(5, 0, 5);
 	startState.Rotation = Quaternion::Identity;
-	startState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
+	//startState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
 
-	endState.Position = Vector3(-5,0,5);
+	endState.Position = Vector3(5, 0, 5);
 	endState.Rotation = Quaternion::Identity;
-	endState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
+	//endState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
@@ -110,12 +110,46 @@ InnerState Robot::InverseKinematics(State state)
 	float l4 = l[2];
 
 	float a1 = atan2f(p.y - l4 * x.y, p.x - l4 * x.x);
+	if (!prev.angles.empty())
+	{
+		float prev_a1 = NormalizeRad(XMConvertToRadians(prev.angles[0]));
+		a1 = NormalizeRad(a1);
+		if (DiffRad(prev_a1, a1) > DiffRad(prev_a1, a1 - XM_PI))
+			a1 = a1 - XM_PI;
+	}
+
+	bool rot = DiffRad(XM_PIDIV2, a1) < 0.1 || DiffRad(-XM_PIDIV2, a1) < 0.1;
+	if (rot)
+	{
+		a1 += XM_PIDIV2;
+		Matrix m = Matrix::CreateRotationZ(XM_PIDIV2);
+		p = XMVector3TransformCoord(p, m);
+		x = XMVector3TransformNormal(x, m);
+		y = XMVector3TransformNormal(y, m);
+		z = XMVector3TransformNormal(z, m);
+	}
+
 	float a4 = asinf(cosf(a1) * x.y - sinf(a1) * x.x);
+	if (!prev.angles.empty())
+	{
+		float prev_a4 = NormalizeRad(XMConvertToRadians(prev.angles[3]));
+		a4 = NormalizeRad(a4);
+		if (DiffRad(prev_a4, a4) > DiffRad(prev_a4, XM_PI - a4))
+			a4 = XM_PI - a4;
+	}
+
+	a4 = XM_PIDIV2;
+	float q1 = (cosf(a1) * y.y - sinf(a1) * y.x);
+	float q2 = cosf(a4);
+	float qwe = q1/q2;
 	float a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
 	float a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
 	float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
 	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
 	float a3 = a23 - a2;
+
+	if (rot)
+		a1 -= XM_PIDIV2;
 
 	InnerState inner;
 	inner.q = q;
@@ -146,27 +180,27 @@ vector<Matrix> Robot::GetMatrices(InnerState inner)
 	return result;
 }
 
-float Robot::NormalizeDeg(float angle)
+float Robot::NormalizeDeg(float deg)
 {
-	while (angle < 0) angle += 360;
-	while (angle >= 360) angle -= 360;
+	while (deg < 0) deg += 360;
+	while (deg >= 360) deg -= 360;
 
-	return angle;
+	return deg;
 }
-float Robot::NormalizeRad(float angle)
+float Robot::NormalizeRad(float rad)
 {
-	while (angle < 0) angle += XM_2PI;
-	while (angle >= XM_2PI) angle -= XM_2PI;
+	while (rad < 0) rad += XM_2PI;
+	while (rad >= XM_2PI) rad -= XM_2PI;
 
-	return angle;
+	return rad;
 }
-float Robot::DegDiff(float a, float b)
+float Robot::DiffDeg(float a, float b)
 {
 	float deg = abs(NormalizeDeg(b) - NormalizeDeg(a));
-	return deg > 180 ? deg - 180 : deg;
+	return deg > 180 ? 360 - deg : deg;
 }
-float Robot::RadDiff(float a, float b)
+float Robot::DiffRad(float a, float b)
 {
-	float rad = abs(NormalizeDeg(b) - NormalizeDeg(a));
-	return rad > XM_PI ? rad - XM_PI : rad;
+	float rad = abs(NormalizeRad(b) - NormalizeRad(a));
+	return rad > XM_PI ? XM_2PI - rad : rad;
 }

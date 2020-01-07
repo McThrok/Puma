@@ -39,6 +39,7 @@ public:
 
 	State startState;
 	State endState;
+	InnerState prev;
 
 	void Init();
 	InnerState GetState(float animationProgress, bool angleInterpolation);
@@ -54,7 +55,7 @@ public:
 
 	float NormalizeDeg(float angle);
 	float NormalizeRad(float angle);
-	float DegDiff(float a, float b);
-	float RadDiff(float a, float b);
+	float DiffDeg(float a, float b);
+	float DiffRad(float a, float b);
 };
 
