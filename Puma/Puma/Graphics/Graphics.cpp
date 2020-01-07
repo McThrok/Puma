@@ -92,6 +92,11 @@ void Graphics::RenderMainPanel() {
 		simulation->robot.endState.Rotation = simulation->robot.EtoQ(simulation->robot.ToRad(endRotation));
 
 	ImGui::Separator();
+	ImGui::SliderFloat("l1", &simulation->robot.l[0], 1, 5);
+	ImGui::SliderFloat("l3", &simulation->robot.l[1], 1, 5);
+	ImGui::SliderFloat("l4", &simulation->robot.l[2], 1, 5);
+	
+	ImGui::Separator();
 	ImGui::Checkbox("inner CS", &simulation->robot.showInnerCS);
 	ImGui::Checkbox("loop", &simulation->loop);
 	ImGui::SliderFloat("animation time", &simulation->animationTime, 1, 5);

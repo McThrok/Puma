@@ -8,13 +8,13 @@ void Robot::Init()
 	l.push_back(2);
 	l.push_back(1);
 
-	startState.Position = Vector3(5, 0, 5);
+	startState.Position = Vector3(0, -1, 7);
 	startState.Rotation = Quaternion::Identity;
-	//startState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
+	startState.Rotation = EtoQ({ 0, 0, -XM_PIDIV2 });
 
-	endState.Position = Vector3(5, 0, 5);
+	endState.Position = Vector3(0, -1, 2);
 	endState.Rotation = Quaternion::Identity;
-	//endState.Rotation = EtoQ({ 0, -XM_PIDIV2, 0 });
+	endState.Rotation = EtoQ({ 0,  0, -XM_PIDIV2 });
 }
 InnerState Robot::GetState(float animationProgress, bool angleInterpolation)
 {
@@ -99,6 +99,7 @@ Vector3 Robot::ToDeg(Vector3 v)
 }
 InnerState Robot::InverseKinematics(State state)
 {
+	float eps = 10e-3;
 	Vector3 p = state.Position;
 	Matrix m = state.GetMatrix();
 	Vector3 x = XMVector3TransformNormal(Vector3(1, 0, 0), m);
@@ -138,15 +139,45 @@ InnerState Robot::InverseKinematics(State state)
 			a4 = XM_PI - a4;
 	}
 
-	a4 = XM_PIDIV2;
-	float q1 = (cosf(a1) * y.y - sinf(a1) * y.x);
-	float q2 = cosf(a4);
-	float qwe = q1/q2;
 	float a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
 	float a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
+
 	float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
 	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
 	float a3 = a23 - a2;
+
+	//float q;
+	//float a3;
+	//if (DiffRad(a2, XM_PIDIV2) > eps&& DiffRad(a2, -XM_PIDIV2) > eps)
+	//{
+	//	q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
+	//	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
+	//	a3 = a23 - a2;
+	//}
+	//else if (DiffRad(a2, XM_PIDIV2) < eps)
+	//{
+	//	a3 = acosf(-x.z / a4);
+	//	if (!prev.angles.empty())
+	//	{
+	//		float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
+	//		a3 = NormalizeRad(a3);
+	//		if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
+	//			a3 = -a3;
+	//	}
+	//	q = l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) - p.z;
+	//}
+	//else
+	//{
+	//	a3 = acosf(x.z / a4);
+	//	if (!prev.angles.empty())
+	//	{
+	//		float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
+	//		a3 = NormalizeRad(a3);
+	//		if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
+	//			a3 = -a3;
+	//	}
+	//	q = -l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) + p.z;
+	//}
 
 	if (rot)
 		a1 -= XM_PIDIV2;
