@@ -21,7 +21,7 @@ public:
 	Vector3 Position;
 	Quaternion Rotation;
 
-	Matrix GetMatrix(){return Matrix::CreateFromQuaternion(Rotation) * Matrix::CreateTranslation(Position);}
+	Matrix GetMatrix() { return Matrix::CreateFromQuaternion(Rotation) * Matrix::CreateTranslation(Position); }
 };
 
 class InnerState
@@ -57,5 +57,19 @@ public:
 	float NormalizeRad(float angle);
 	float DiffDeg(float a, float b);
 	float DiffRad(float a, float b);
+
+	Vector3 Fix(Vector3 c)
+	{
+		return{ Fix(c.x), Fix(c.y), Fix(c.z) };
+	}
+	float Fix(float f)
+	{
+		float eps = 10e-6;
+		if (abs(f - 1) < eps) f = 1;
+		if (abs(f) < eps) f = 0;
+		if (abs(f+1 ) < eps) f = -1;
+			
+		return f;
+	}
 };
 
