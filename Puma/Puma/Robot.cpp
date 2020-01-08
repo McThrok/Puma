@@ -110,7 +110,9 @@ InnerState Robot::InverseKinematics(State state)
 	float l3 = l[1];
 	float l4 = l[2];
 
-	float a1 = atan2f(p.y - l4 * x.y, p.x - l4 * x.x);
+	float a1, a2, a3, a4, a5, q;
+
+	a1 = atan2f(p.y - l4 * x.y, p.x - l4 * x.x);
 	if (!prev.angles.empty())
 	{
 		float prev_a1 = NormalizeRad(XMConvertToRadians(prev.angles[0]));
@@ -130,7 +132,7 @@ InnerState Robot::InverseKinematics(State state)
 		z = XMVector3TransformNormal(z, m);
 	}
 
-	float a4 = asinf(cosf(a1) * x.y - sinf(a1) * x.x);
+	a4 = asinf(cosf(a1) * x.y - sinf(a1) * x.x);
 	if (!prev.angles.empty())
 	{
 		float prev_a4 = NormalizeRad(XMConvertToRadians(prev.angles[3]));
@@ -139,15 +141,14 @@ InnerState Robot::InverseKinematics(State state)
 			a4 = XM_PI - a4;
 	}
 
-	float a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
-	float a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
+	a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
+	a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
 
-	//float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
-	//float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
-	//float a3 = a23 - a2;
 
-	float q;
-	float a3;
+	float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
+	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
+	float a3 = a23 - a2;
+
 	eps = 10e-4;
 	if (DiffRad(a2, XM_PIDIV2) > eps&& DiffRad(a2, -XM_PIDIV2) > eps)
 	{
@@ -179,13 +180,10 @@ InnerState Robot::InverseKinematics(State state)
 				if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
 					a3 = -a3;
 			}
-			float a = cosf(a3);
-			float b = cosf(a4);
-			float c = cosf(a3);
-			float d = cosf(p.z);
 			q = -l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) + p.z;
 		}
 	}
+
 
 	if (rot)
 		a1 -= XM_PIDIV2;

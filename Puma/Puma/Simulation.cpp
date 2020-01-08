@@ -13,6 +13,7 @@ void Simulation::Init()
 
 void Simulation::Reset()
 {
+	robot.prev.angles.clear();
 	time = 0;
 }
 
@@ -24,8 +25,13 @@ void Simulation::Update(float dt)
 	if (time > animationTime)
 	{
 		if (loop)
+		{
 			time -= animationTime;
+			robot.prev.angles.clear();
+		}
 		else
+		{
 			time = min(time, animationTime);
+		}
 	}
 }
