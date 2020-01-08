@@ -144,45 +144,56 @@ InnerState Robot::InverseKinematics(State state)
 	a5 = atan2((sinf(a1) * z.x - cosf(a1) * z.y) / cosf(a4), (cosf(a1) * y.y - sinf(a1) * y.x) / cosf(a4));
 	a2 = atan2(-cosf(a1) * cosf(a4) * (p.z - l4 * x.z - l1) - l3 * (x.x + sinf(a1) * sinf(a4)), cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z);
 
-
-	float q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
 	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
-	float a3 = a23 - a2;
+	a3 = a23 - a2;
 
 	eps = 10e-4;
-	if (DiffRad(a2, XM_PIDIV2) > eps&& DiffRad(a2, -XM_PIDIV2) > eps)
+	if (DiffRad(a2, XM_PIDIV2) < eps)
 	{
-		q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
-		float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
-		a3 = a23 - a2;
+		q = l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) - p.z;
+	}
+	else if (DiffRad(a2, -XM_PIDIV2) < eps)
+	{
+		q = p.z - l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3);
 	}
 	else
 	{
-		if (DiffRad(a2, XM_PIDIV2) < eps)
-		{
-			a3 = acosf(-x.z / a4);
-			if (!prev.angles.empty())
-			{
-				float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
-				a3 = NormalizeRad(a3);
-				if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
-					a3 = -a3;
-			}
-			q = l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) - p.z;
-		}
-		else
-		{
-			a3 = acosf(x.z / a4);
-			if (!prev.angles.empty())
-			{
-				float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
-				a3 = NormalizeRad(a3);
-				if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
-					a3 = -a3;
-			}
-			q = -l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) + p.z;
-		}
+		q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
 	}
+	//eps = 10e-4;
+	//if (DiffRad(a2, XM_PIDIV2) > eps&& DiffRad(a2, -XM_PIDIV2) > eps)
+	//{
+	//	q = (cosf(a4) * (p.x - l4 * x.x) - cosf(a1) * l3 * x.z) / (cosf(a1) * cosf(a2) * cosf(a4));
+	//	float a23 = atan2(-x.z / cosf(a4), (x.x + sinf(a1) * sinf(a4)) / (cosf(a1) * cosf(a4)));
+	//	a3 = a23 - a2;
+	//}
+	//else
+	//{
+	//	if (DiffRad(a2, XM_PIDIV2) < eps)
+	//	{
+	//		a3 = acosf(-x.z / a4);
+	//		if (!prev.angles.empty())
+	//		{
+	//			float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
+	//			a3 = NormalizeRad(a3);
+	//			if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
+	//				a3 = -a3;
+	//		}
+	//		q = l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) - p.z;
+	//	}
+	//	else
+	//	{
+	//		a3 = acosf(x.z / a4);
+	//		if (!prev.angles.empty())
+	//		{
+	//			float prev_a3 = NormalizeRad(XMConvertToRadians(prev.angles[2]));
+	//			a3 = NormalizeRad(a3);
+	//			if (DiffRad(prev_a3, a3) > DiffRad(prev_a3, -a3))
+	//				a3 = -a3;
+	//		}
+	//		q = -l1 - cosf(a3) * cosf(a4) * l4 + l3 * sinf(a3) + p.z;
+	//	}
+	//}
 
 
 	if (rot)

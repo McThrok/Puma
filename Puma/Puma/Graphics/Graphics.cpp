@@ -95,7 +95,7 @@ void Graphics::RenderMainPanel() {
 	ImGui::SliderFloat("l1", &simulation->robot.l[0], 1, 5);
 	ImGui::SliderFloat("l3", &simulation->robot.l[1], 1, 5);
 	ImGui::SliderFloat("l4", &simulation->robot.l[2], 1, 5);
-	
+
 	ImGui::Separator();
 	ImGui::Checkbox("inner CS", &simulation->robot.showInnerCS);
 	ImGui::Checkbox("loop", &simulation->loop);
@@ -133,12 +133,12 @@ void Graphics::RenderVisualisation()
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 
-	////top
-	//this->deviceContext->RSSetViewports(1, &viewportTop);
-	//RenderCS(simulation->robot.startState.GetMatrix());
-	//RenderCS(simulation->robot.endState.GetMatrix());
+	//top
+	this->deviceContext->RSSetViewports(1, &viewportTop);
+	RenderCS(simulation->robot.startState.GetMatrix());
+	RenderCS(simulation->robot.endState.GetMatrix());
 
-	//RenderPuma(true);
+	RenderPuma(true);
 
 	//down
 	this->deviceContext->RSSetViewports(1, &viewportDown);
@@ -174,7 +174,7 @@ void Graphics::RenderPuma(bool angleInterpolation)
 	if (state.q > 0)
 		RenderCube(cubeMtx * Matrix::CreateScale(1, 1, state.q) * Matrix::CreateRotationY(XM_PIDIV2) * css[1], { 1,1,1,1 });
 	else
-		RenderCube(cubeMtx  * Matrix::CreateScale(1, 1, -state.q) * Matrix::CreateRotationY(3*XM_PIDIV2)  * css[1], { 1,1,1,1 });
+		RenderCube(cubeMtx  * Matrix::CreateScale(1, 1, -state.q) * Matrix::CreateRotationY(3 * XM_PIDIV2)  * css[1], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[1]) * Matrix::CreateTranslation(0, 0, -simulation->robot.l[1]) * css[2], { 1,1,1,1 });
 	RenderCube(cubeMtx * Matrix::CreateScale(1, 1, simulation->robot.l[2]) * Matrix::CreateRotationY(XM_PIDIV2) * css[3], { 1,1,1,1 });
 
